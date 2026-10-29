@@ -1,0 +1,70 @@
+{
+  "name": "@relyt/auth",
+  "version": "0.1.0",
+  "description": "Relyt managed-auth SDK: client token cache and server-side JWT verification (EdDSA, remote JWKS), plus a Next.js middleware entry.",
+  "keywords": [
+    "relyt",
+    "auth",
+    "jwt",
+    "jwks",
+    "eddsa",
+    "nextjs",
+    "middleware"
+  ],
+  "license": "MIT",
+  "author": "Relyt",
+  "homepage": "https://github.com/relytcloud/relyt-auth-js#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/relytcloud/relyt-auth-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/relytcloud/relyt-auth-js/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./next": {
+      "types": "./dist/next.d.ts",
+      "default": "./dist/next.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@10.18.1",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "tsc -p tsconfig.build.json && vitest run",
+    "typecheck": "tsc --noEmit -p .",
+    "prepublishOnly": "pnpm run build && pnpm run test"
+  },
+  "dependencies": {
+    "jose": "6.2.13"
+  },
+  "peerDependencies": {
+    "next": "^14.2.35 || >=15.5.28 <16"
+  },
+  "peerDependenciesMeta": {
+    "next": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "next": "15.5.28",
+    "react": "19.2.9",
+    "react-dom": "19.2.9",
+    "typescript": "5.9.3",
+    "vitest": "5.0.5"
+  }
+}
