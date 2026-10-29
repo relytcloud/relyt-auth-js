@@ -34,9 +34,19 @@ jobs:
         run: |
           v="$(node -p 'require("./package.json").version')"
           if [ "v$v" != "$GITHUB_REF_NAME" ]; then echo "tag $GITHUB_REF_NAME does not match version $v"; exit 1; fi
+      - name: Skip if this version is already on npm
+        id: published
+        run: |
+          v="$(node -p 'require("./package.json").version')"
+          if npm view "@relyt/auth@$v" version >/dev/null 2>&1; then
+            echo "@relyt/auth@$v is already published; nothing to do"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
       - run: pnpm run typecheck
+        if: steps.published.outputs.skip != 'true'
       # prepublishOnly runs build + test again inside npm publish.
       - name: Publish
+        if: steps.published.outputs.skip != 'true'
         run: |
           if printf '%s' "$GITHUB_REF_NAME" | grep -q -- '-'; then tag=next; else tag=latest; fi
           npm publish --provenance --access public --tag "$tag"
