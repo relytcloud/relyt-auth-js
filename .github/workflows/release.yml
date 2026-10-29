@@ -1,5 +1,11 @@
 # Publishes @relyt/auth to npm when a version tag (v*) is pushed.
-# Requires the repository secret NPM_TOKEN (an npm automation / granular token with publish rights on the @relyt scope).
+# Authentication, in order of preference:
+#   1. npm trusted publishing (OIDC): register this repository and workflow file (release.yml) as a
+#      trusted publisher in the @relyt/auth package settings on npmjs.com. No secret is needed.
+#      Trusted publishing can only be configured once the package exists, so the very first version
+#      is published by hand by a member of the @relyt npm org.
+#   2. Fallback: a granular access token with publish rights on @relyt/auth only, stored as the
+#      repository secret NPM_TOKEN. Leave the secret unset when trusted publishing is configured.
 name: Release
 
 on:
@@ -21,6 +27,8 @@ jobs:
           node-version: 22
           cache: pnpm
           registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm 11.5.1 or later; Node 22 ships npm 10.
+      - run: npm install -g npm@^11.5.1
       - run: pnpm install --frozen-lockfile
       - name: Tag matches package.json version
         run: |
@@ -33,4 +41,5 @@ jobs:
           if printf '%s' "$GITHUB_REF_NAME" | grep -q -- '-'; then tag=next; else tag=latest; fi
           npm publish --provenance --access public --tag "$tag"
         env:
+          # Empty when trusted publishing is used; npm then authenticates with the OIDC token.
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
