@@ -1,0 +1,36 @@
+# Publishes @relyt/auth to npm when a version tag (v*) is pushed.
+# Requires the repository secret NPM_TOKEN (an npm automation / granular token with publish rights on the @relyt scope).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write # required for npm provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - name: Tag matches package.json version
+        run: |
+          v="$(node -p 'require("./package.json").version')"
+          if [ "v$v" != "$GITHUB_REF_NAME" ]; then echo "tag $GITHUB_REF_NAME does not match version $v"; exit 1; fi
+      - run: pnpm run typecheck
+      # prepublishOnly runs build + test again inside npm publish.
+      - name: Publish
+        run: |
+          if printf '%s' "$GITHUB_REF_NAME" | grep -q -- '-'; then tag=next; else tag=latest; fi
+          npm publish --provenance --access public --tag "$tag"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
